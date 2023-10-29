@@ -45,6 +45,50 @@
 
 ### Ответ к заданию 1:
 
+```
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode tcp    # TCP
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
+
+frontend example
+    mode tcp
+    bind :8088
+    default_backend web_servers
+
+backend web_servers
+    mode tcp
+    balance roundrobin
+    server s1 127.0.0.1:8000 check
+    server s2 127.0.0.1:9000 check
+    server s3 127.0.0.1:10000 check
+
+listen web_tcp
+    bind :1325
+    server s1 127.0.0.1:8000 check inter 3s
+    server s2 127.0.0.1:9000 check inter 3s
+    server s3 127.0.0.1:10000 check inter 3s
+
+
+```
+
+#### Скриншоты работы:
+Я настроил 3 сервера вместо двух.
+
+![image](https://github.com/Llyffy/resilience/assets/53367937/5d51ea65-e546-4db7-92c1-f14124a86482)
+
 
 ------
 
@@ -58,9 +102,60 @@
 
 ### Ответ к заданию 2
 
+```
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    chroot /var/lib/haproxy
+    stats socket /run/haproxy/admin.sock mode 660 level admin
+    stats timeout 30s
+    user haproxy
+    group haproxy
+    daemon
 
-------
+defaults
+    log global
+    mode http   # HTTP
+    option httplog
+    option dontlognull
+    timeout connect 5000
+    timeout client 50000
+    timeout server 50000
 
+listen stats
+    bind :888
+    mode http
+    stats enable
+    stats uri /stats
+    stats refresh 5s
+    stats realm Haproxy\ Statistics
+
+frontend example
+    mode http
+    bind :8088
+    default_backend web_servers
+    acl ACL_example.com hdr(host) -i example.com
+    use_backend web_servers if ACL_example.com
+
+backend web_servers
+    mode http
+    balance roundrobin
+    option httpchk
+    http-check send meth GET uri /index.html
+    server s1 127.0.0.1:8000 check weight 2
+    server s2 127.0.0.1:9000 check weight 3
+    server s3 127.0.0.1:10000 check weight 4
+
+listen web_tcp
+    bind :1325
+    server s1 127.0.0.1:8000 check inter 3s
+    server s2 127.0.0.1:9000 check inter 3s
+    server s3 127.0.0.1:10000 check inter 3s
+
+```
+
+#### Скриншоты работы:
+![image](https://github.com/Llyffy/resilience/assets/53367937/a0fb6aea-3bd5-478e-bb4c-2ac1c6705b96)
 
 ---
 
