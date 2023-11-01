@@ -47,9 +47,9 @@
 
 ### Ответ к заданию 1:
 
-Я не понимаю как сделать это задание, я понял что мне нужно чтобы в этой строке было написано track interface GigabitEthernet0/0 state Up decrement 10, но каким образом я не нашел. Прошу помочь
-![image](https://github.com/Llyffy/resilience/assets/53367937/5f0c9641-4eeb-4fdc-9d51-e560ae22c366)
+![image](https://github.com/Llyffy/resilience/assets/53367937/b15fa8d9-42ba-484e-b41b-7ea954987f65)
 
+https://github.com/Llyffy/resilience/blob/main/hsrp_advanced.pkt
 
 ------
 
