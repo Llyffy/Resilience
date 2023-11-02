@@ -65,15 +65,62 @@ https://github.com/Llyffy/resilience/blob/main/hsrp_advanced.pkt
 
 ### Ответ к заданию 2:
 
-У меня не получилось почему то зайти на плавающий IP адрес. Сами они запущены и работают, в журналах ошибок нет, конфигурацию взял из листинга кода, изменил разве что BACKUP и интерфейс поменял на enp0s3, не могу понять почему не получается зайти на http://192.168.111.15
-![image](https://github.com/Llyffy/resilience/assets/53367937/40d32cac-978d-443f-b2b1-49ad58d78339)
+#### Bash-script:
 
-Вот у меня не получается зайти на плавающий айпи:
-![image](https://github.com/Llyffy/resilience/assets/53367937/7a229e3e-cc7a-4a9e-8db8-fbcf38802203)
+```
+#!/bin/bash
 
-Но я могу зайти на статичный айпи адрес своих вм:
-![image](https://github.com/Llyffy/resilience/assets/53367937/ef4f5302-6c93-444c-9e92-78d5d94cd128)
-(тоже самое будет если зайду на 192.168.0.105) 
+# Адрес и порт веб сервера
+VM_ADDRESS="192.168.0.10"
+WEB_PORT=80
+
+# Проверка доступности порта веб-сервера
+nc -z -w 2 $VM_ADDRESS $WEB_PORT
+
+# Проверка наличия index.html
+if [[ -n "$(curl -sI http://$VM_ADDRESS | grep '200 OK')" ]]; then
+  echo "Веб сервер работает!"
+  exit 0
+else
+  echo "Веб сервер упал либо index.html отсутствует! ;("
+  exit 1
+fi
+
+```
+#### keepalived.conf:
+
+```
+vrrp_script keeping_alive {
+  script "/llyffy/home/Scripts/keeping_alive.sh"
+  interval 3
+  weight 2
+}
+
+vrrp_instance VI_1 {
+        state MASTER
+        interface enp0s3
+        virtual_router_id 15
+        priority 255
+        advert_int 1
+
+        virtual_ipaddress {
+              192.168.0.10/24
+        }
+
+}
+
+```
+
+#### Скриншоты работоспособности:
+
+##### keepalived working:
+
+![image](https://github.com/Llyffy/resilience/assets/53367937/e303fe31-8959-4492-81f0-0bd00c54ec55)
+
+##### keepalived dead but working on another vm:
+
+![image](https://github.com/Llyffy/resilience/assets/53367937/755ea413-2b6f-4105-a0dd-14e82926d42f)
+
 
 ------
 
